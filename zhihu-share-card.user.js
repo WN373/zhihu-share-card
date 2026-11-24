@@ -1,13 +1,11 @@
 // ==UserScript==
 // @name         知乎回答分享卡片生成器 (Zhihu Share Card)
 // @namespace    https://github.com/WN373/zhihu-share-card
-// @version      1.0.0
+// @version      1.0.1
 // @description  一键将知乎回答、专栏文章或划词金句渲染为精致分享卡片，支持多主题、自定义开关、原文二维码、一键复制到剪贴板与高清 PNG 下载。
 // @author       WN373
 // @homepageURL  https://github.com/WN373/zhihu-share-card
 // @supportURL   https://github.com/WN373/zhihu-share-card/issues
-// @updateURL    https://raw.githubusercontent.com/WN373/zhihu-share-card/main/zhihu-share-card.user.js
-// @downloadURL  https://raw.githubusercontent.com/WN373/zhihu-share-card/main/zhihu-share-card.user.js
 // @match        https://www.zhihu.com/*
 // @match        https://zhuanlan.zhihu.com/*
 // @grant        GM_xmlhttpRequest
@@ -16,7 +14,6 @@
 // @grant        GM_addStyle
 // @connect      zhimg.com
 // @connect      zhihu.com
-// @connect      *
 // @require      https://cdn.jsdelivr.net/npm/modern-screenshot@4.6.0/dist/index.js
 // @require      https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js
 // @run-at       document-idle
