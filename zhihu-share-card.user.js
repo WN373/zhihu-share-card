@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         知乎回答分享卡片生成器 (Zhihu Share Card)
 // @namespace    https://github.com/WN373/zhihu-share-card
-// @version      1.0.1
+// @version      1.1.0
 // @description  一键将知乎回答、专栏文章或划词金句渲染为精致分享卡片，支持多主题、自定义开关、原文二维码、一键复制到剪贴板与高清 PNG 下载。
 // @author       WN373
 // @homepageURL  https://github.com/WN373/zhihu-share-card
@@ -24,8 +24,9 @@
   'use strict';
 
   const STORAGE_KEY = 'zsc_preferences_v1';
+  const VALID_THEMES = new Set(['system', 'light', 'warm', 'dark', 'blue']);
   const DEFAULT_PREFS = {
-    theme: 'light', // light | warm | dark | blue
+    theme: 'system', // system | light | warm | dark | blue
     width: 600, // 480 | 600 | 720
     showTitle: true,
     showAuthor: true,
@@ -34,6 +35,18 @@
     showFrame: true,
     scale: 2,
   };
+
+  const systemDarkMedia =
+    typeof window.matchMedia === 'function'
+      ? window.matchMedia('(prefers-color-scheme: dark)')
+      : null;
+
+  function resolveTheme(theme) {
+    if (theme === 'system') {
+      return systemDarkMedia && systemDarkMedia.matches ? 'dark' : 'light';
+    }
+    return VALID_THEMES.has(theme) ? theme : 'light';
+  }
 
   const imageDataUrlCache = new Map();
 
@@ -48,7 +61,11 @@
           : localStorage.getItem(STORAGE_KEY);
       if (!raw) return { ...DEFAULT_PREFS };
       const parsed = typeof raw === 'string' ? JSON.parse(raw) : raw;
-      return { ...DEFAULT_PREFS, ...parsed };
+      const merged = { ...DEFAULT_PREFS, ...parsed };
+      if (!VALID_THEMES.has(merged.theme)) {
+        merged.theme = DEFAULT_PREFS.theme;
+      }
+      return merged;
     } catch {
       return { ...DEFAULT_PREFS };
     }
@@ -85,13 +102,15 @@
       display: inline-flex;
       align-items: center;
       gap: 4px;
-      margin-left: 16px;
+      margin-left: 12px;
       padding: 0 6px;
       height: 30px;
       border: none;
       background: transparent;
       color: #8590a6;
       font-size: 14px;
+      white-space: nowrap;
+      flex-shrink: 0;
       cursor: pointer;
       border-radius: 4px;
       transition: color 0.15s ease, background-color 0.15s ease;
@@ -105,31 +124,6 @@
       width: 15px;
       height: 15px;
       flex-shrink: 0;
-    }
-
-    /* Selection floating button */
-    .zsc-selection-pill {
-      position: fixed;
-      z-index: 2147483640;
-      display: none;
-      align-items: center;
-      gap: 6px;
-      padding: 6px 12px;
-      border-radius: 999px;
-      border: 1px solid rgba(0, 0, 0, 0.08);
-      background: #18181b;
-      color: #ffffff;
-      font-size: 12px;
-      font-weight: 500;
-      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.22);
-      cursor: pointer;
-      user-select: none;
-      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "PingFang SC", sans-serif;
-      transition: transform 0.12s ease, background-color 0.12s ease;
-    }
-    .zsc-selection-pill:hover {
-      background: #1772f6;
-      transform: translateY(-1px);
     }
 
     /* Modal Backdrop */
@@ -335,6 +329,9 @@
     .zsc-seg-btn:disabled {
       opacity: 0.45;
       cursor: not-allowed;
+    }
+    .zsc-seg-btn.zsc-seg-span-2 {
+      grid-column: 1 / -1;
     }
 
     .zsc-swatch {
@@ -815,6 +812,101 @@
         border-top: 1px solid #e5e7eb;
       }
     }
+
+    @media (prefers-color-scheme: dark) {
+      .zsc-modal-backdrop {
+        background: rgba(2, 6, 23, 0.72);
+      }
+      .zsc-modal-shell {
+        background: #18181b;
+        color: #e4e4e7;
+      }
+      .zsc-modal-header {
+        background: #1f1f23;
+        border-bottom-color: #2e2e36;
+      }
+      .zsc-modal-title {
+        color: #f4f4f5;
+      }
+      .zsc-view-tabs {
+        background: #27272a;
+      }
+      .zsc-view-tab {
+        color: #a1a1aa;
+      }
+      .zsc-view-tab.active {
+        background: #3f3f46;
+        color: #ffffff;
+      }
+      .zsc-close-btn {
+        color: #a1a1aa;
+      }
+      .zsc-close-btn:hover {
+        background: #27272a;
+        color: #ffffff;
+      }
+      .zsc-stage {
+        background-color: #111318;
+        background-image:
+          radial-gradient(circle at 1px 1px, rgba(148, 163, 184, 0.16) 1px, transparent 0);
+      }
+      .zsc-stage-hint {
+        color: #94a3b8;
+      }
+      .zsc-sidebar {
+        background: #1f1f23;
+        border-left-color: #2e2e36;
+      }
+      .zsc-section-label {
+        color: #a1a1aa;
+      }
+      .zsc-seg-btn {
+        border-color: #3f3f46;
+        background: #27272a;
+        color: #e4e4e7;
+      }
+      .zsc-seg-btn:hover {
+        border-color: #52525b;
+        background: #2e2e36;
+      }
+      .zsc-seg-btn.active {
+        border-color: #3b82f6;
+        background: rgba(59, 130, 246, 0.18);
+        color: #93c5fd;
+      }
+      .zsc-swatch {
+        border-color: rgba(255, 255, 255, 0.22);
+      }
+      .zsc-toggle-row {
+        color: #e4e4e7;
+      }
+      .zsc-sidebar-footer {
+        border-top-color: #2e2e36;
+        background: #1f1f23;
+      }
+      .zsc-btn-secondary {
+        border-color: #3f3f46;
+        background: #27272a;
+        color: #e4e4e7;
+      }
+      .zsc-btn-secondary:hover {
+        background: #32323a;
+      }
+      .zsc-status-text {
+        color: #94a3b8;
+      }
+      .zsc-status-text.success {
+        color: #34d399;
+      }
+      .zsc-status-text.error {
+        color: #f87171;
+      }
+      @media (max-width: 820px) {
+        .zsc-sidebar {
+          border-top-color: #2e2e36;
+        }
+      }
+    }
   `);
 
   // ---------------------------------------------------------------------------
@@ -1063,8 +1155,9 @@
   // Card DOM Builder
   // ---------------------------------------------------------------------------
   function createCardElement(data, prefs, mode) {
+    const effectiveTheme = resolveTheme(prefs.theme);
     const outer = document.createElement('div');
-    outer.className = `zsc-card-outer zsc-theme-${prefs.theme} ${
+    outer.className = `zsc-card-outer zsc-theme-${effectiveTheme} ${
       prefs.showFrame ? 'has-frame' : 'no-frame'
     }`;
     outer.style.width = `${prefs.width}px`;
@@ -1293,6 +1386,9 @@
         <div>
           <div class="zsc-section-label">卡片主题</div>
           <div class="zsc-seg-group">
+            <button type="button" class="zsc-seg-btn zsc-seg-span-2" data-theme="system" title="根据系统深色/浅色模式自动切换纸白与暗夜">
+              <span class="zsc-swatch" style="background:linear-gradient(135deg, #ffffff 50%, #161b22 50%)"></span>跟随系统
+            </button>
             <button type="button" class="zsc-seg-btn" data-theme="light">
               <span class="zsc-swatch" style="background:#ffffff"></span>纸白
             </button>
@@ -1483,8 +1579,28 @@
     }
     window.addEventListener('keydown', onKeyDown);
 
+    function onSystemThemeChange() {
+      if (prefs.theme === 'system') {
+        refreshView();
+      }
+    }
+    if (systemDarkMedia) {
+      if (typeof systemDarkMedia.addEventListener === 'function') {
+        systemDarkMedia.addEventListener('change', onSystemThemeChange);
+      } else if (typeof systemDarkMedia.addListener === 'function') {
+        systemDarkMedia.addListener(onSystemThemeChange);
+      }
+    }
+
     function closeModal() {
       window.removeEventListener('keydown', onKeyDown);
+      if (systemDarkMedia) {
+        if (typeof systemDarkMedia.removeEventListener === 'function') {
+          systemDarkMedia.removeEventListener('change', onSystemThemeChange);
+        } else if (typeof systemDarkMedia.removeListener === 'function') {
+          systemDarkMedia.removeListener(onSystemThemeChange);
+        }
+      }
       invalidateBlob();
       backdrop.remove();
     }
@@ -1632,10 +1748,35 @@
     );
   }
 
+  function findRightAnchor(bar) {
+    let el =
+      bar.querySelector('.ContentItem-rightButton') ||
+      Array.from(bar.children).find((child) => {
+        if (child.classList?.contains('zsc-action-btn')) return false;
+        const text = cleanText(child);
+        return text === '收起' || text.startsWith('收起');
+      });
+    while (el && el.parentElement !== bar) {
+      el = el.parentElement;
+    }
+    return el || null;
+  }
+
   function injectButtons() {
     const actionBars = document.querySelectorAll('.ContentItem-actions');
     actionBars.forEach((bar) => {
-      if (bar.querySelector('.zsc-action-btn')) return;
+      const rightAnchor = findRightAnchor(bar);
+      const existingBtn = bar.querySelector('.zsc-action-btn');
+      if (existingBtn) {
+        // Keep the collapse ("收起") button at its default bottom-right position
+        if (
+          rightAnchor &&
+          existingBtn.compareDocumentPosition(rightAnchor) & Node.DOCUMENT_POSITION_PRECEDING
+        ) {
+          bar.insertBefore(existingBtn, rightAnchor);
+        }
+        return;
+      }
 
       const root = findContentRoot(bar);
       // Only attach to answers or articles that actually contain rich content
@@ -1650,8 +1791,13 @@
       const btn = document.createElement('button');
       btn.type = 'button';
       btn.className = 'zsc-action-btn';
-      btn.title = '将该回答/文章渲染为分享图片';
+      btn.title = '将该回答/文章渲染为分享图片（划词选中文字后点击可生成金句）';
       btn.innerHTML = `${CARD_ICON_SVG}<span>生成分享图</span>`;
+
+      btn.addEventListener('mousedown', (e) => {
+        // Preserve any active text selection inside the answer until click runs
+        e.preventDefault();
+      });
 
       btn.addEventListener('click', (e) => {
         e.preventDefault();
@@ -1671,98 +1817,13 @@
         openShareStudio(data);
       });
 
-      bar.appendChild(btn);
+      if (rightAnchor) {
+        bar.insertBefore(btn, rightAnchor);
+      } else {
+        bar.appendChild(btn);
+      }
     });
   }
-
-  // ---------------------------------------------------------------------------
-  // Selection Floating Pill ("生成金句卡片")
-  // ---------------------------------------------------------------------------
-  const selectionPill = document.createElement('button');
-  selectionPill.type = 'button';
-  selectionPill.className = 'zsc-selection-pill';
-  selectionPill.innerHTML = `${CARD_ICON_SVG}<span>生成金句卡片</span>`;
-  document.body.appendChild(selectionPill);
-
-  let pendingSelection = null;
-
-  selectionPill.addEventListener('mousedown', (e) => {
-    // Prevent clearing text selection before click runs
-    e.preventDefault();
-  });
-
-  selectionPill.addEventListener('click', () => {
-    if (!pendingSelection) return;
-    const { root, text } = pendingSelection;
-    selectionPill.style.display = 'none';
-    const data = extractZhihuData(root, text);
-    openShareStudio(data);
-  });
-
-  function updateSelectionPill() {
-    const sel = window.getSelection();
-    if (!sel || sel.isCollapsed) {
-      selectionPill.style.display = 'none';
-      pendingSelection = null;
-      return;
-    }
-
-    const text = sel.toString().trim();
-    if (text.length < 4) {
-      selectionPill.style.display = 'none';
-      pendingSelection = null;
-      return;
-    }
-
-    const anchorEl =
-      sel.anchorNode?.nodeType === Node.ELEMENT_NODE
-        ? sel.anchorNode
-        : sel.anchorNode?.parentElement;
-
-    if (!anchorEl || anchorEl.closest('.zsc-modal-backdrop')) {
-      selectionPill.style.display = 'none';
-      pendingSelection = null;
-      return;
-    }
-
-    const richContainer =
-      anchorEl.closest('.RichContent-inner') ||
-      anchorEl.closest('.Post-RichTextContainer') ||
-      anchorEl.closest('.RichText');
-
-    if (!richContainer) {
-      selectionPill.style.display = 'none';
-      pendingSelection = null;
-      return;
-    }
-
-    const range = sel.getRangeAt(0);
-    const rect = range.getBoundingClientRect();
-    if (!rect || (rect.width === 0 && rect.height === 0)) return;
-
-    pendingSelection = {
-      root: findContentRoot(richContainer),
-      text,
-    };
-
-    const top = Math.max(12, rect.top - 42);
-    const left = Math.min(
-      window.innerWidth - 150,
-      Math.max(12, rect.left + rect.width / 2 - 64)
-    );
-    selectionPill.style.top = `${top}px`;
-    selectionPill.style.left = `${left}px`;
-    selectionPill.style.display = 'inline-flex';
-  }
-
-  document.addEventListener('mouseup', () => {
-    setTimeout(updateSelectionPill, 20);
-  });
-  document.addEventListener('scroll', () => {
-    if (selectionPill.style.display !== 'none') {
-      selectionPill.style.display = 'none';
-    }
-  }, { passive: true });
 
   // ---------------------------------------------------------------------------
   // Bootstrap & MutationObserver

@@ -115,6 +115,9 @@
       font-size: 14px;
       cursor: pointer;
     }
+    .ContentItem-rightButton {
+      margin-left: auto;
+    }
   </style>
   <!-- Load same libraries as userscript @require -->
   <script src="https://cdn.jsdelivr.net/npm/modern-screenshot@4.6.0/dist/index.js"></script>
@@ -124,7 +127,7 @@
   <div class="page-wrap">
     <div class="banner">
       <strong>本地测试沙箱：</strong>下方模拟了知乎回答的真实 DOM 结构。你可以直接点击底部操作栏的
-      <strong>「生成分享图」</strong>，或在正文中<strong>划词选中一段文字</strong>触发「生成金句卡片」。
+      <strong>「生成分享图」</strong>，或在正文中<strong>划词选中一段文字后再点击「生成分享图」</strong>进入金句摘录模式。
     </div>
 
     <div class="QuestionHeader">
@@ -175,6 +178,7 @@ const flow = ['阅读', '一键生成卡片', '⌘+V 分享'];</code></pre>
         <button class="mock-btn" type="button">186 条评论</button>
         <button class="mock-btn" type="button">分享</button>
         <button class="mock-btn" type="button">收藏</button>
+        <button class="mock-btn ContentItem-rightButton" type="button">收起</button>
       </div>
     </div>
   </div>
